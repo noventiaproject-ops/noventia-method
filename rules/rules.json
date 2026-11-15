@@ -1,0 +1,371 @@
+{
+  "asOf": "2026-11-15T13:35:25Z",
+  "rulesVersion": "branches-3",
+  "thresholdsVersion": 2,
+  "branchConfigVersion": 3,
+  "modelVersion": 2,
+  "rules": [
+    {
+      "ruleId": "branch.holder",
+      "version": 3,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.airdropClaim",
+        "solana.claimAccountMovement",
+        "solana.claimAccountOpening",
+        "solana.stakeDelegated",
+        "solana.stakeDeactivated",
+        "solana.lstMovement",
+        "solana.solBalanceDay"
+      ],
+      "outputs": [
+        "ep",
+        "level",
+        "nextLevelAtEp",
+        "events",
+        "seals",
+        "status"
+      ],
+      "description": "Airdrops from the programme list kept 30 and 90 days, native SOL staked and liquid staking tokens held 30 and 90 days, the wallet's own SOL at or above the floor 30 days in a row.",
+      "branch": "holder"
+    },
+    {
+      "ruleId": "branch.trader",
+      "version": 3,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.tradingWeek"
+      ],
+      "outputs": [
+        "ep",
+        "level",
+        "nextLevelAtEp",
+        "events",
+        "seals",
+        "status"
+      ],
+      "description": "Active trading weeks: an ISO week with at least the minimum swaps the wallet signed on at least two days, at most four a month; volume earns nothing.",
+      "branch": "trader"
+    },
+    {
+      "ruleId": "branch.builder",
+      "version": 3,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.programDeployed",
+        "solana.governanceVote"
+      ],
+      "outputs": [
+        "ep",
+        "level",
+        "nextLevelAtEp",
+        "events",
+        "seals",
+        "status"
+      ],
+      "description": "Programs deployed, once each, and votes cast in listed DAOs, once per proposal.",
+      "branch": "builder"
+    },
+    {
+      "ruleId": "trader.automation",
+      "version": 1,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.tradingWeek"
+      ],
+      "outputs": [
+        "flag"
+      ],
+      "description": "Looks automated: swaps in one clock hour, hours with a swap in one UTC day, or identical swaps in one week past the limits; no Trader EP until the owner's appeal is decided."
+    },
+    {
+      "ruleId": "fundingCluster",
+      "version": 2,
+      "modelVersion": 2,
+      "inputs": [
+        "lists.firstFunding"
+      ],
+      "outputs": [
+        "freeze",
+        "case"
+      ],
+      "description": "Linked wallets: a group that a project's list check found between different passports, where at least two independent signals agree. Wallets of one passport give no signal among themselves. Opens a case and holds the wallet's levels in every branch until the case is decided; the EP earned is kept."
+    },
+    {
+      "ruleId": "card.warnings",
+      "version": 2,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.firstTransaction",
+        "solana.tokenCreated",
+        "solana.tokenMovement",
+        "solana.liquidityRemoved"
+      ],
+      "outputs": [
+        "warnings"
+      ],
+      "description": "The developer card: launches, liquidity pulls, first day dumps and moves out, and the four warning levels from them."
+    },
+    {
+      "ruleId": "token.check",
+      "version": 5,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.mintState",
+        "solana.tokenMetadata",
+        "solana.holderConcentration",
+        "solana.tokenFirstTransaction",
+        "solana.fundingClusters"
+      ],
+      "outputs": [
+        "official",
+        "issuerPowers",
+        "warnings"
+      ],
+      "description": "The token check: issuer powers as facts, the official list, concentration and copies of listed assets; never \"safe\" or \"unsafe\"."
+    },
+    {
+      "ruleId": "airdrop.method",
+      "version": 4,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.airdropClaim",
+        "solana.claimAccountMovement",
+        "solana.claimAccountOpening"
+      ],
+      "outputs": [
+        "record",
+        "outcome"
+      ],
+      "description": "The published airdrop method: sold on day one, moved out, deposited, held at 30 and 90 days, from the recipient's own first claim."
+    },
+    {
+      "ruleId": "pioneer",
+      "version": 1,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.firstTransaction"
+      ],
+      "outputs": [
+        "pioneer"
+      ],
+      "description": "Pioneers: a person at level 1 in two branches or level 2 in one, no frozen branch, the oldest wallet 90 days old; the first 250 numbered in the order they met the rule; never bought or transferred."
+    },
+    {
+      "ruleId": "token.creatorShare",
+      "version": 1,
+      "modelVersion": 2,
+      "inputs": [
+        "solana.tokenCreated",
+        "solana.tokenMovement"
+      ],
+      "outputs": [
+        "creatorShare"
+      ],
+      "description": "The creator's share of the supply at launch and at 1 hour, 24 hours, 7 days, 30 days and now, from the creator's own movements; no warning comes from it."
+    }
+  ],
+  "branches": [
+    {
+      "branch": "holder",
+      "stage": "now",
+      "events": [
+        {
+          "event": "airdropHeld30d",
+          "when": "Kept at least Y% (50%) of an airdrop from the programme list 30 days after the first claim, deposits into programs included",
+          "facts": [
+            "solana.airdropClaim",
+            "solana.claimAccountMovement",
+            "solana.claimAccountOpening"
+          ],
+          "ep": 50,
+          "cap": {
+            "count": 1,
+            "per": "programme"
+          }
+        },
+        {
+          "event": "airdropHeld90d",
+          "when": "Kept at least Y% (50%) of an airdrop from the programme list 90 days after the first claim, deposits into programs included",
+          "facts": [
+            "solana.airdropClaim",
+            "solana.claimAccountMovement",
+            "solana.claimAccountOpening"
+          ],
+          "ep": 150,
+          "cap": {
+            "count": 1,
+            "per": "programme"
+          }
+        },
+        {
+          "event": "solStaked30d",
+          "when": "Native SOL of at least 1 SOL delegated from a stake account of the wallet and kept delegated for 30 days (proposal)",
+          "facts": [
+            "solana.stakeDelegated",
+            "solana.stakeDeactivated"
+          ],
+          "ep": 50,
+          "cap": {
+            "count": 1,
+            "per": "asset"
+          }
+        },
+        {
+          "event": "solStaked90d",
+          "when": "The same kept delegated for 90 days (proposal)",
+          "facts": [
+            "solana.stakeDelegated",
+            "solana.stakeDeactivated"
+          ],
+          "ep": 150,
+          "cap": {
+            "count": 1,
+            "per": "asset"
+          }
+        },
+        {
+          "event": "lstHeld30d",
+          "when": "Liquid staking tokens from src/config/lst-mints.ts of at least 1 unit held for 30 days, deposits into programs included (proposal)",
+          "facts": [
+            "solana.lstMovement"
+          ],
+          "ep": 50,
+          "cap": {
+            "count": 1,
+            "per": "asset"
+          }
+        },
+        {
+          "event": "lstHeld90d",
+          "when": "The same held for 90 days (proposal)",
+          "facts": [
+            "solana.lstMovement"
+          ],
+          "ep": 150,
+          "cap": {
+            "count": 1,
+            "per": "asset"
+          }
+        },
+        {
+          "event": "solHeld30d",
+          "when": "The SOL balance of the wallet itself stayed at or above 0.1 SOL on 30 whole UTC days in a row; once per passport, however many wallets it links (owner, 1 November 2026)",
+          "facts": [
+            "solana.solBalanceDay"
+          ],
+          "ep": 50,
+          "cap": {
+            "count": 1,
+            "per": "passport"
+          }
+        }
+      ],
+      "thresholds": [
+        50,
+        200,
+        400,
+        600,
+        1000
+      ]
+    },
+    {
+      "branch": "trader",
+      "stage": "now",
+      "events": [
+        {
+          "event": "activeTradingWeek",
+          "when": "An ISO week (Monday to Sunday, UTC) with at least 3 swaps the wallet signed, on at least 2 different days",
+          "facts": [
+            "solana.tradingWeek"
+          ],
+          "ep": 10,
+          "cap": {
+            "count": 4,
+            "per": "month"
+          }
+        }
+      ],
+      "thresholds": [
+        30,
+        100,
+        250,
+        500,
+        1000
+      ]
+    },
+    {
+      "branch": "builder",
+      "stage": "now",
+      "events": [
+        {
+          "event": "programDeployed",
+          "when": "The wallet deployed a new program (BPF upgradeable loader), as payer or upgrade authority",
+          "facts": [
+            "solana.programDeployed"
+          ],
+          "ep": 200,
+          "cap": {
+            "count": 1,
+            "per": "program"
+          }
+        },
+        {
+          "event": "daoVote",
+          "when": "The wallet cast a vote in a DAO from src/config/governance-programs.ts (Jupiter DAO, SPL Governance), once per proposal",
+          "facts": [
+            "solana.governanceVote"
+          ],
+          "ep": 15,
+          "cap": {
+            "count": 1,
+            "per": "proposal"
+          }
+        }
+      ],
+      "thresholds": [
+        100,
+        200,
+        600,
+        1000,
+        2000
+      ]
+    },
+    {
+      "branch": "lp",
+      "stage": "later",
+      "events": [],
+      "thresholds": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "branch": "early",
+      "stage": "later",
+      "events": [],
+      "thresholds": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    }
+  ],
+  "invariants": [
+    "no_proof_no_fact: a fact exists only with at least one transaction or account state behind it",
+    "no_single_score: EP and levels exist per branch only; no answer carries a total across branches",
+    "ep_never_decreases: bad facts are warnings with their proofs, never deductions",
+    "history_not_bought: only facts about the wallet itself count; a transfer into a wallet carries nothing of the sender",
+    "freeze_keeps_ep: a freeze blocks the branch levels until the case is decided and removes no EP"
+  ],
+  "freeze": {
+    "what": "A wallet that at least two independent signals link to wallets of other passports keeps the EP it earned and adds no event after the freeze; every branch of its passport shows frozen, with no level, until the case is decided. Wallets of one passport give no signal among themselves.",
+    "until": "A Noventia operator decides the case; the owner is told and answers first.",
+    "appeal": "The owner writes to support@noventia.app with the case id from the freeze, or answers through the appeal in the app."
+  }
+}
